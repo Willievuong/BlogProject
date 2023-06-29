@@ -14,7 +14,6 @@ function PostEntry(props : Props) {
     })
     async function createPost() {
         let data = {subject: postState.newPostTitle, content: postState.newPostContent}
-        console.log(data)
         const response = await axios({
             method: 'post',
             url: 'http://localhost:5001/createpost',

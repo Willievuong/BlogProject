@@ -44,7 +44,7 @@ function Home(props: Props){
                     {state.posts.map((i)=>{
                         return (                    
                             <Grid item xs={12}>
-                                <PostCard username={i['username']} subject={i['subject']} content={i['content']} datetime={i['time']}/>
+                                <PostCard post={i} renderPage={homepage}/>
                             </Grid>)
                     })}
                 </Grid>

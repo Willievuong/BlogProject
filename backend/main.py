@@ -24,11 +24,12 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:postgres@blog_pro
 db.init_app(app)
 migrate = Migrate(app, db)
 
-@app.route('/', methods=['GET'])
-@jwt_required()
+@app.route('/', methods=['GET', 'POST'])
+# @jwt_required()
 def hello_world():
-    current_user = get_jwt_identity()
-    print(current_user)
+    # current_user = get_jwt_identity()
+    # print(current_user)
+    print(request.method)
     return {'msg': 'From one to America, how free are you tonight? Henry ;)'}, 200
 
 @app.route('/signup', methods=['POST'])
@@ -57,7 +58,6 @@ def signup():
     db.session.add(newProfile)
     db.session.commit()
     return {'msg': 'new profile created'}, 201
-
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -91,7 +91,6 @@ def login():
         return { "access_token": access_token}, 200
     else :
         return {'msg': "User's name or password did not match" }, 400
-
 
 @app.route('/<username>', methods=['GET'])
 def get_user(username):
@@ -266,12 +265,53 @@ def follow(username):
     current_user.follow(profile)
     db.session.commit()
     return { 'msg' : 'you are following ' + username}
-    pass
+
+@app.route('/unfollow/<username>', methods=['POST'])
+@jwt_required()
+def unfollow(username):
+    profile = Profile.query.filter_by(username = username).first()
+    current_user = Profile.query.filter_by(id = get_jwt_identity()).first()
+    if profile is None:
+        return { 'msg': 'Profile not found'}, 400
+    if current_user.is_following(profile):
+        current_user.unfollow(profile)
+        db.session.commit()
+        return { 'msg': 'Successfully unfollow ' + username}, 200
+    else:
+        return { 'msg': 'You are not following ' + username + ' cannot unfollow'}, 401
+
+@app.route('/isfollowing/<username>', methods=['GET'])
+@jwt_required()
+def isfollowing(username):
+    profile = Profile.query.filter_by(username = username).first()
+    current_user = Profile.query.filter_by(id = get_jwt_identity()).first()
+    if profile is None:
+        return { 'msg': 'Profile not found'}, 400
+    else:
+        if profile == current_user:
+            return jsonify('self')
+        return jsonify(current_user.is_following(profile))
 
 followers = db.Table('followers',
     db.Column('follower_id', db.Integer, db.ForeignKey('profile.id')),
     db.Column('followed_id', db.Integer, db.ForeignKey('profile.id'))
 )
+
+@app.route('/<post_id>/createcomment', methods=['POST'])
+@jwt_required()
+def createcomment(post_id):
+    i = request.get_json()
+    comment = Comment(
+        content=i['content'], 
+        time=datetime.datetime.now(), 
+        profile_id=get_jwt_identity(), 
+        post_id=post_id
+        )
+    
+    db.session.add(comment)
+    db.session.commit()
+    return comment.to_dict() , 201
+
 
 class Profile(db.Model):
 
@@ -315,15 +355,40 @@ class Post(db.Model):
     time = db.Column(db.DateTime, nullable=False)
     id = db.Column(db.Integer, nullable=False, primary_key=True)
     profile_id = db.Column(db.Integer, db.ForeignKey('profile.id'))
+    comments = db.relationship('Comment', backref='post', lazy=True)
 
     def to_dict(self):
+        comments = Comment.query.filter_by(post_id = self.id)
+        comments_list = []
+        for comment in comments:
+            comments_list.append(comment.to_dict())
         return {'subject' : self.subject,
                 'content' : self.content,
                 'time' : self.time,
-                'post_id' : self.id,
+                'id' : self.id,
                 'profile_id' : self.profile_id,
-                'username' : Profile.query.filter_by( id = self.profile_id).first().username}    
+                'username' : Profile.query.filter_by( id = self.profile_id).first().username,
+                'comments' : comments_list}    
+
+class Comment(db.Model):
     
+    id = db.Column(db.Integer, nullable=False, primary_key=True)
+    content = db.Column(db.String, nullable=False)
+    time = db.Column(db.DateTime, nullable=False)
+    profile_id = db.Column(db.Integer, db.ForeignKey('profile.id'), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+    # likes = db.Column(db.Ineger, db.ForeignKey('profile.id'), nullable=False)
+
+    def to_dict(self):
+        return {'id': self.id,
+                'content': self.content,
+                'time': self.time,
+                'post_id': self.post_id,
+                'profile_id': self.profile_id,
+                'username': Profile.query.filter_by(id=self.profile_id).first().username
+        }
+
+
 class Blog:
     def __init__(self):
         self.users = {}
