@@ -1,4 +1,4 @@
-import { Avatar, Card, CardContent, IconButton, Typography, Grid, CardHeader } from "@mui/material";
+import { Avatar, Card, CardContent, CardActions, IconButton, Typography, Grid, CardHeader, Button } from "@mui/material";
 import { Box } from "@mui/system";
 import { Link } from "react-router-dom"
 
@@ -75,9 +75,12 @@ function PostCard(props : Props){
                     {props.content}
                 </Typography>
             </CardContent>
+            <CardActions sx={{ml: 7}}>
+                <Button size="small">Comment</Button>
+                <Button size="small">Like</Button>
+            </CardActions>
         </Card>
     )
-
 }
 
 export default PostCard
