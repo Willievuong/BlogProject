@@ -6,6 +6,7 @@ import PostEntry from "../components/PostEntry"
 
 export interface Props {
     handleChange: any;
+    loggedIn: boolean
 }
 
 function Home(props: Props){
@@ -20,35 +21,30 @@ function Home(props: Props){
             headers: {'Authorization' : 'Bearer ' + localStorage.getItem('access_token')}
         })
         setState({posts: response.data.data})
-        console.log(response.data.data)
     }
     useEffect(()=>{
         homepage()
     }, [])
     return (
-        <div
-            style={{
-                
-            }}
-        >
-            <Grid container spacing={2} justifyContent="space-evenly">
-                <Grid item xs={12}>
-                    <Typography>
-                        Home Page
-                    </Typography>
+        <div>
+            <Grid container>
+                <Grid xs={3}></Grid>
+                <Grid container spacing={2} direction="column" justifyContent="center" xs={6}>
+                    <Grid item container justifyContent='center'>
+                        <PostEntry getHomePage={homepage}/>  
+                    </Grid>
+                    <Grid container item spacing={2} justifyContent='center'>
+                        {state.posts.map((i)=>{
+                            return (                    
+                                <Grid item>
+                                    <PostCard post={i} renderPage={homepage}/>
+                                </Grid>
+                            )
+                        })}
+                    </Grid>
                 </Grid>
-                <Grid item xs={12}>
-                    <PostEntry getHomePage={homepage}/>  
-                </Grid>
-                <Grid item container spacing={2} justifyContent="space-evenly">
-                    {state.posts.map((i)=>{
-                        return (                    
-                            <Grid item xs={12}>
-                                <PostCard post={i} renderPage={homepage}/>
-                            </Grid>)
-                    })}
-                </Grid>
-            </Grid>           
+                <Grid xs={3}></Grid>
+            </Grid>          
         </div>
     )
 

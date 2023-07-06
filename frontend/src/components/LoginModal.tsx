@@ -1,11 +1,12 @@
 import { Card, Button, CardContent, TextField, Typography } from "@mui/material"
 import Grid from '@mui/material/Unstable_Grid2';
-import { useState } from "react"
-import { Link } from "react-router-dom"
+import { useState, useEffect } from "react"
+import { Link, useNavigate } from "react-router-dom"
 import axios from 'axios'
 
 export interface Props {
     setLoggedIn: any
+    loggedIn: boolean
 }
 
 function LoginModal(props: Props){
@@ -13,6 +14,8 @@ function LoginModal(props: Props){
         username: '',
         password: ''
     })
+
+    const navigate = useNavigate()
 
     async function helloWorld() {
         const response = await axios.get('http://localhost:5001/')
@@ -28,6 +31,7 @@ function LoginModal(props: Props){
         if(response.status == 200) {
             localStorage.setItem('access_token', response.data.access_token)
             props.setLoggedIn(true)
+            navigate('/')
         }
     }
 
@@ -50,7 +54,7 @@ function LoginModal(props: Props){
                         </Typography>
                         <TextField id="username" label="Username" fullWidth margin="normal" onChange={handleChange}/>
                         <TextField id="password" label="Password" fullWidth margin="normal" onChange={handleChange}/>
-                        <Button variant="contained" size="large" onClick={login} component={Link} to="/"> Login </Button>
+                        <Button variant="contained" size="large" onClick={login}> Login </Button>
                         <Typography>
                             Not yet a user? <a href="/signup">sign up</a>
                         </Typography>

@@ -7,6 +7,7 @@ import { useState } from "react"
 export interface Props {
     type: string
     setLoggedIn: any
+    loggedIn: boolean
 }
 
 function Authentication(props : Props){
@@ -15,7 +16,7 @@ function Authentication(props : Props){
     if (props.type === "login")
         return (
             <div style={{textAlign: "center"}}>
-                <LoginModal setLoggedIn={props.setLoggedIn}/>
+                <LoginModal setLoggedIn={props.setLoggedIn} loggedIn={props.setLoggedIn}/>
             </div>
         )
     else

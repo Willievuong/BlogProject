@@ -1,4 +1,7 @@
-import { Avatar, Card, CardContent, CardActions, IconButton, Typography, Grid, CardHeader, Button, Divider, AppBar, Toolbar, TextField } from "@mui/material";
+import { Avatar, Card, CardContent, CardActions, IconButton, Typography, Grid, CardHeader, Button, Divider, Toolbar, TextField} from "@mui/material";
+import ThumbUpAltOutlinedIcon from '@mui/icons-material/ThumbUpAltOutlined';
+import ChatBubbleOutlineOutlinedIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
+import SendIcon from '@mui/icons-material/Send';
 import { Box } from "@mui/system";
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
@@ -90,8 +93,10 @@ function PostCard(props : Props){
             </CardContent>
             <Divider variant="middle"></Divider>
             <CardActions sx={{ justifyContent: 'space-around'}}>
-                <Button size="small">Like</Button>
-                <Button size="small">Comment</Button>
+                <Button size="small">
+                    <ThumbUpAltOutlinedIcon/>&nbsp;Like</Button>
+                <Button size="small">
+                <ChatBubbleOutlineOutlinedIcon/>&nbsp;Comment</Button>
             </CardActions>
             <Divider variant="middle"></Divider>
             <Grid>
@@ -110,8 +115,16 @@ function PostCard(props : Props){
                             {props.post['username'][0].toUpperCase()}
                         </Avatar>
                     </IconButton>
-                    <TextField id="newComment" label='Write a comment...' fullWidth onChange={handleChange} value={state.newComment}></TextField>
-                    <Button onClick={createComment}>Send</Button>
+                    <TextField 
+                        id="newComment" 
+                        label='Write a comment...' 
+                        fullWidth onChange={handleChange} 
+                        value={state.newComment} 
+                        variant="filled"
+                        size="small"
+                        sx={{ borderRadius: 'px'}}
+                    ></TextField>
+                    <Button onClick={createComment}><SendIcon/></Button>
                 </Toolbar>
             </Box>
         </Card>

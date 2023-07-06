@@ -32,11 +32,7 @@ function PostEntry(props : Props) {
 
     return (
         <div>
-            <Grid
-                container
-                justifyContent="space-evenly"
-                alignItems="center"
-            >
+            <Grid container>
                 <Card sx={{ minWidth: 600, maxWidth: 1080}}>
                     <CardContent>
                         <Grid container >

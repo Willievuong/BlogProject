@@ -38,7 +38,6 @@ function Profile(){
                 <Grid 
                     container
                     justifyContent="space-evenly"
-                    alignItems="center"
                 >
                     {state.username && <ProfileCard username={state.username}/>}
                 </Grid>
