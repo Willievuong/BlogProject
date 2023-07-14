@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import desc
 from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from flask_jwt_extended import create_access_token
 from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
@@ -11,15 +11,20 @@ from flask_jwt_extended import JWTManager
 from flask_jwt_extended import set_access_cookies
 from flask_jwt_extended import unset_jwt_cookies
 import datetime
+import os
 
 db = SQLAlchemy()
 app = Flask(__name__)
-app.config['JWT_SECRET_KEY'] = "Kq06kyGTM5UrqLRsLokql1jCSXNvooOw"
-CORS(app)
+flask_env = os.getenv("flask_env")
+if flask_env == "production":
+    app.config.from_object('config.ProductionConfig')
+else:
+    app.config.from_object('config.DevelopmentConfig')
+cors = CORS(app)
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 # configure the SQLite database, relative to the app instance folder
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:postgres@blog_project_db:5432/database"
+# app.config["SQLALCHEMY_DATABASE_URI"] = production_database_url
 # initialize the app with the extension
 db.init_app(app)
 migrate = Migrate(app, db)
@@ -29,8 +34,7 @@ migrate = Migrate(app, db)
 def hello_world():
     # current_user = get_jwt_identity()
     # print(current_user)
-    print(request.method)
-    return {'msg': 'From one to America, how free are you tonight? Henry ;)'}, 200
+    return {'message': 'From one to America, how free are you tonight? Henry ;)'}, 200
 
 @app.route('/signup', methods=['POST'])
 def signup():
@@ -53,11 +57,16 @@ def signup():
 
     '''
     inputs = request.get_json()
-    # TODO: Validate 
+    if not inputs or not inputs.get('username') or not inputs.get('password'):
+        return { 'message' : 'Could not Verify' }, 401
+    user = Profile.query.filter_by(username=inputs['username']).first()
+    if user:
+        return { 'message' : 'Username already exist. Please select another.'}, 406
+    
     newProfile = Profile(email = inputs['email'], username = inputs['username'], password = inputs['password'])
     db.session.add(newProfile)
     db.session.commit()
-    return {'msg': 'new profile created'}, 201
+    return {'message': 'new profile created'}, 201
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -82,7 +91,7 @@ def login():
     inputs = request.get_json()
     user = Profile.query.filter_by(username = inputs['username']).first()
     if not user:
-        return {'msg':'User not found'}, 404
+        return {'message':'User not found'}, 404
     # check encrypted password
     print(user.password, inputs['password'])
     if bcrypt.check_password_hash(user.password, inputs['password']) :
@@ -90,7 +99,7 @@ def login():
         access_token = create_access_token(identity=user.id,expires_delta=False)
         return { "access_token": access_token}, 200
     else :
-        return {'msg': "User's name or password did not match" }, 400
+        return {'message': "User's name or password did not match" }, 400
 
 @app.route('/<username>', methods=['GET'])
 def get_user(username):
@@ -109,7 +118,7 @@ def get_user(username):
     '''
     profile = Profile.query.filter_by(username = username).first()
     if not profile:
-        return {'msg' : 'User not found.'}, 400
+        return {'message' : 'User not found.'}, 400
     return profile.to_dict(), 200
 
 @app.route('/current_user', methods=['GET'])
@@ -117,7 +126,7 @@ def get_user(username):
 def get_current_user():
     profile = Profile.query.filter_by(id = get_jwt_identity()).first()
     if not profile:
-        return {'msg' : 'User not found.'}, 400
+        return {'message' : 'User not found.'}, 400
     return profile.to_dict(), 200
 
 @app.route('/createpost', methods=['POST'])
@@ -162,7 +171,7 @@ def edit_post(post_id):
     '''
     post = Post.query.filter_by(post_id=post_id).first()
     if post.profile_id != get_jwt_identity():
-        return {"msg": "User does not have access to edit this post"}, 400
+        return {"message": "User does not have access to edit this post"}, 400
     inputs = request.get_json()
     if inputs['subject']:
         post.subject = inputs['subject']
@@ -193,7 +202,7 @@ def get_post(post_id):
     '''
     post = Post.query.filter_by(id = post_id).first()
     if not post:
-        return {'msg': 'post not found'}
+        return {'message': 'post not found'}
     return post.to_dict(), 200
 
 @app.route('/<username>/posts', methods=['GET'])
@@ -259,12 +268,12 @@ def follow(username):
     profile = Profile.query.filter_by(username = username).first()
     current_user = Profile.query.filter_by(id = get_jwt_identity()).first()
     if profile is None:
-        return { 'msg' : 'Profile not found'}, 400
+        return { 'message' : 'Profile not found'}, 400
     if profile == current_user:
-        return { 'msg' : 'You cannot follow yourself'}
+        return { 'message' : 'You cannot follow yourself'}
     current_user.follow(profile)
     db.session.commit()
-    return { 'msg' : 'you are following ' + username}
+    return { 'message' : 'you are following ' + username}
 
 @app.route('/unfollow/<username>', methods=['POST'])
 @jwt_required()
@@ -272,13 +281,13 @@ def unfollow(username):
     profile = Profile.query.filter_by(username = username).first()
     current_user = Profile.query.filter_by(id = get_jwt_identity()).first()
     if profile is None:
-        return { 'msg': 'Profile not found'}, 400
+        return { 'message': 'Profile not found'}, 400
     if current_user.is_following(profile):
         current_user.unfollow(profile)
         db.session.commit()
-        return { 'msg': 'Successfully unfollow ' + username}, 200
+        return { 'message': 'Successfully unfollow ' + username + '.'}, 200
     else:
-        return { 'msg': 'You are not following ' + username + ' cannot unfollow'}, 401
+        return { 'message': 'You are not following ' + username + ' cannot unfollow.'}, 401
 
 @app.route('/isfollowing/<username>', methods=['GET'])
 @jwt_required()
@@ -286,7 +295,7 @@ def isfollowing(username):
     profile = Profile.query.filter_by(username = username).first()
     current_user = Profile.query.filter_by(id = get_jwt_identity()).first()
     if profile is None:
-        return { 'msg': 'Profile not found'}, 400
+        return { 'message': 'Profile not found'}, 400
     else:
         if profile == current_user:
             return jsonify('self')
@@ -301,6 +310,8 @@ followers = db.Table('followers',
 @jwt_required()
 def createcomment(post_id):
     i = request.get_json()
+    if not i or not i.get('content'):
+        return {'message': 'Comment not found'}, 400
     comment = Comment(
         content=i['content'], 
         time=datetime.datetime.now(), 
@@ -404,4 +415,5 @@ class Blog:
 
 
 if __name__ == '__main__':
+    app.config.from_object('config.DevelopmentConfig')
     app.run(debug=True, host="0.0.0.0",port=5001)

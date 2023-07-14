@@ -18,6 +18,8 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
+    env_file: 
+      - .env
     command: python main.py
     volumes:
       - .:/BlogProject
@@ -25,3 +27,5 @@ services:
       - '5001:5001'
     depends_on:
       - blog_project_db
+    environment:
+      flask_env: 'development'
