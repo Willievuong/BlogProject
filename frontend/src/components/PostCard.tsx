@@ -6,7 +6,7 @@ import { Box } from "@mui/system";
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import Comment from "../components/Comment"
-import axios from 'axios'
+import handleRequest from "../utilities/Request";
 
 
 export interface IPost {
@@ -37,17 +37,13 @@ function PostCard(props : Props){
     })
 
     async function createComment() {
-        const response = await axios({
-            method: 'post',
-            url: 'http://localhost:5001/'+ props.post.id + '/createcomment',
-            headers: {'Authorization' : 'Bearer ' + localStorage.getItem('access_token')},
-            data: { content: state.newComment }
-        })
-        if(response) {
+        const response = await handleRequest('post', '/' + props.post.id + '/createcomment')
+        if(response.status === 201) {
             setState({newComment: ''})
             props.renderPage()
         }
     }
+
 
     function handleChange(event: any)  {
         setState({...state, [event.target.id]: event.target.value})

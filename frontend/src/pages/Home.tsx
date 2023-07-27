@@ -1,8 +1,8 @@
-import { Button, Grid, Typography } from "@mui/material"
+import { Grid } from "@mui/material"
 import PostCard from "../components/PostCard"
-import axios from 'axios'
 import { useEffect, useState } from 'react'
 import PostEntry from "../components/PostEntry"
+import handleRequest from "../utilities/Request"
 
 export interface Props {
     handleChange: any;
@@ -15,11 +15,7 @@ function Home(props: Props){
     })
     //TODO: make this call return all post of you & people you follow
     async function homepage() {
-        const response = await axios({
-            method: 'get',
-            url: 'http://localhost:5001/allposts',
-            headers: {'Authorization' : 'Bearer ' + localStorage.getItem('access_token')}
-        })
+        const response = await handleRequest('get', '/allposts')
         setState({posts: response.data.data})
     }
     useEffect(()=>{

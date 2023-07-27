@@ -1,7 +1,7 @@
-import {Card, CardContent, Button, TextField, Typography, Grid, IconButton, Avatar, formLabelClasses} from "@mui/material"
+import {Card, Button, Typography, Grid, IconButton, Avatar} from "@mui/material"
 import { useState, useEffect } from 'react'
-import axios from 'axios'
 import ProfileEditModal from "../pages/ProfileEditModal";
+import handleRequest from "../utilities/Request";
 
 export interface Props {
     username: string;
@@ -16,38 +16,28 @@ function ProfileCard(props : Props) {
     })
     
     async function follow() {
-        const response = await axios({
-        method: 'post',
-        url: 'http://localhost:5001/follow/' + props.username,
-        headers: {'Authorization' : 'Bearer ' + localStorage.getItem('access_token')}
-        })
-        if(response) {
+        const response = await handleRequest('post', '/follow/' + props.username)
+        if(response.status === 200) {
             console.log(response)
         }
     }
 
     async function unfollow() {
-        const response = await axios({
-            method: 'post',
-            url: 'http://localhost:5001/unfollow/' + props.username,
-            headers: {'Authorization' : 'Bearer ' + localStorage.getItem('access_token')}
-        })
+        const response = await handleRequest('post', '/follow/' + props.username)
+        if(response.status === 200) {
+            console.log(response)
+        }
     }
 
     async function isFollowing() {
-        const response = await axios({
-            method: 'get',
-            url: 'http://localhost:5001/isfollowing/' + props.username,
-            headers: {'Authorization' : 'Bearer ' + localStorage.getItem('access_token')}
-        })
+        const response = await handleRequest('get', '/isfollowing/' + props.username)
         if(response) {
             console.log(response.data)
-            if(response.data == 'self') {
-                console.log('me')
+            if(response.data === 'self') {
                 setState({...state, isSelf: true})
             }
             else {
-                response.data == true ? setState({...state, isFollowing: true}) : setState({...state, isFollowing: false})
+                response.data === true ? setState({...state, isFollowing: true}) : setState({...state, isFollowing: false})
             }
         }
     }

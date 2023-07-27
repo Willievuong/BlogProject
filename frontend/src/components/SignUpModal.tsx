@@ -1,7 +1,8 @@
 import { Card, Button, CardContent, TextField, Typography } from "@mui/material"
 import Grid from '@mui/material/Unstable_Grid2';
-import { useState } from 'react'
-import axios from 'axios'
+import { useState, useEffect } from 'react'
+import { useNavigate } from "react-router-dom";
+import handleRequest from "../utilities/Request";
 
 
 
@@ -10,21 +11,32 @@ function SignUpModal(){
     const [state, setState] = useState({
         email: '',
         username: '',
-        password: ''
+        password: '',
+        errorText: ''
     })
     
-
+    const navigate = useNavigate()
     async function signup() {
-        const response = await axios.post('http://localhost:5001/signup', {
+        let data = {
             email: state.email,
             username: state.username,
             password: state.password
-        })
+        }
+        const response = await handleRequest('post', '/signup', data)
+        if(response.status === 201) {
+            navigate('/login')
+        } else if(response.response.status === 406) {
+            setState({...state, errorText: response.response.data.message})
+        }
     }
 
     function handleChange(event:any) {
         setState({...state, [event.target.id]: event.target.value})
     }
+
+    useEffect(()=>{
+
+    }, [state.errorText])
 
     return (
         <div>
@@ -39,10 +51,17 @@ function SignUpModal(){
                         <Typography>
                             Sign Up Modal
                         </Typography>
-                        <TextField id="username" label="Username" fullWidth margin="normal" onChange={handleChange}/>
+                        <TextField id="username" 
+                                   label="Username" 
+                                   fullWidth 
+                                   margin="normal" 
+                                   onChange={handleChange} 
+                                   error={state.errorText.length === 0 ? false: true}
+                                   helperText={state.errorText}
+                        />
                         <TextField id="email" label="Email" fullWidth margin="normal" onChange={handleChange}/>
-                        <TextField id="password" label="Password" fullWidth margin="normal" onChange={handleChange}/>
-                        <Button variant="contained" size="large" href="/login" onClick={signup}>Sign Up</Button>
+                        <TextField id="password" label="Password" fullWidth margin="normal" onChange={handleChange} type="password"/>
+                        <Button variant="contained" size="large" onClick={signup}>Sign Up</Button>
                         <Typography>
                             Did you mean to <a href="/login">login</a> instead?
                         </Typography>
