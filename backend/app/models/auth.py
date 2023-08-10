@@ -20,6 +20,9 @@ class Profile(db.Model):
                                secondaryjoin=(followers.c.followed_id == id),
                                backref= db.backref('followers', lazy='dynamic'),
                                lazy='dynamic')
+    admin = db.Column(db.Boolean, default=True, nullable=False)
+    superuser = db.Column(db.Boolean, default=True, nullable=False)
+
     def to_dict(self):
         return {'id': self.id, 'username': self.username, 'email': self.email}
 

@@ -42,5 +42,8 @@ def create_app():
 
     from app.blog import bp as blog_bp
     app.register_blueprint(blog_bp)
+
+    from app.admins import bp as admin_bp
+    app.register_blueprint(admin_bp, url_prefix="/admins")
   
     return app

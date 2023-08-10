@@ -124,7 +124,7 @@ def follow(username):
         return { 'message' : 'You cannot follow yourself'}
     current_user.follow(profile)
     db.session.commit()
-    return { 'message' : 'you are following ' + username}
+    return { 'message' : 'you are following ' + username }
 
 @bp.route('/unfollow/<username>', methods=['POST'])
 @jwt_required()
