@@ -9,9 +9,7 @@ from flask_jwt_extended import jwt_required
 from flask_jwt_extended import JWTManager
 from flask_jwt_extended import set_access_cookies
 from flask_jwt_extended import unset_jwt_cookies
-
 from flask import Blueprint
-
 
 import datetime
 import os
@@ -19,7 +17,6 @@ import os
 # configure the SQLite database, relative to the app instance folder
 # app.config["SQLALCHEMY_DATABASE_URI"] = production_database_url
 # initialize the app with the extension
-
 def create_app():
     app = Flask(__name__)
     flask_env = os.getenv("flask_env")
@@ -31,7 +28,7 @@ def create_app():
     jwt = JWTManager(app)
     bcrypt = Bcrypt(app)
 
-    db.init_app(app)  
+    db.init_app(app)
     migrate = Migrate(app, db)
 
     from app.main import bp as main_bp
@@ -45,5 +42,13 @@ def create_app():
 
     from app.admins import bp as admin_bp
     app.register_blueprint(admin_bp, url_prefix="/admins")
+
+    @app.cli.command('hello_world')
+    def hello_world():
+        name = input("Enter Name: ")
+        password = input("Enter Password: ")
+
+    with app.app_context():
+        from app.commands import create_user
   
     return app

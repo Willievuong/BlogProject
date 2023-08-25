@@ -24,7 +24,7 @@ class Profile(db.Model):
     superuser = db.Column(db.Boolean, default=True, nullable=False)
 
     def to_dict(self):
-        return {'id': self.id, 'username': self.username, 'email': self.email}
+        return {'id': self.id, 'username': self.username, 'email': self.email, 'admin': self.admin}
 
     def __str__(self):
         return "User(id='%s') " % self.id

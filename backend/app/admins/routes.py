@@ -13,7 +13,6 @@ def is_admin(func):
     @wraps(func)
     def helper(*args, **kwargs):
         profile = Profile.query.filter_by(id = get_jwt_identity()).first()
-        print(profile.to_dict())
         if not profile or profile.admin == False:
             return { "message" : "no admin permissions."}, 403
         else:
@@ -25,10 +24,12 @@ def is_admin(func):
 @is_admin
 def delete_user(username):
     profile = Profile.query.filter_by(username = username).first()
+    profileName = profile.username
     if not profile:
-        return {'message': 'User not found.'}, 400
+        return {'message': 'User not found.'}, 404
     db.session.delete(profile)
     db.session.commit()
+    return {'User ' + profileName + " has been deleted"}, 204 
 
 @bp.route('/<username>', methods=['GET'])
 @jwt_required()
@@ -52,9 +53,11 @@ def get_user(username):
         return {'message' : 'User not found.'}, 400
     return profile.to_dict(), 200
 
+
 @bp.route('/set_admin/<username>', methods=['POST'])
 @jwt_required()
 @is_admin
+
 def set_admin(username):
     profile = Profile.query.filter_by(username = username).first()
     profile.admin = True
